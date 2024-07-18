@@ -1,5 +1,4 @@
 import jwt from 'jsonwebtoken';
-import { JWT_SECRET, ESTUDIANTE, DOCENTE, ADMINISTRATIVO, VIGILANTE, VISITANTE } from '../config/constantes.js';
 import { User } from "../model/User.js";
 
 // Función de registro
@@ -7,11 +6,6 @@ export const register = async (req, res) => {
     try {
         const { firstName, lastName, identificacion, email, password, role, picProfile } = req.body;
 
-        // Verificar si el rol es válido
-        const rolesValidos = [ESTUDIANTE, DOCENTE, ADMINISTRATIVO, VIGILANTE, VISITANTE];
-        if (!rolesValidos.includes(role)) {
-            return res.status(400).json({ message: 'Rol no válido' });
-        }
 
         // Verificar si el usuario ya existe
         const existingUser = await User.findOne({ $or: [{ email }, { identificacion }] });
