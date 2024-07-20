@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { User } from "../model/User.js";
+import {JWT_SECRET} from "../config/constantes.js";
 
 // Función de registro
 export const register = async (req, res) => {
