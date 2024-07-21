@@ -5,6 +5,8 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import {authRoutes} from "./routes/authRoutes.js";
+import {usersRoutes} from "./routes/usersRoutes.js";
+
 
 // Importacion de los archivos de rutas
 
@@ -29,8 +31,7 @@ export const io = new Server(server, {});
 // Usar y exponer rutas
 
 app.use('/api/auth', authRoutes);
-
+app.use('/api/user', usersRoutes);
 
 export {server};
-
 
