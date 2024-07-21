@@ -16,3 +16,12 @@ export const loginValidation = [
     check('email').isEmail().withMessage('Por favor ingresa un correo electrónico válido'),
     check('password').notEmpty().withMessage('La contraseña es requerida'),
 ];
+
+// Validaciones para las rutas de usuario
+export const userValidation = [
+    check('firstName').notEmpty().withMessage('El nombre es requerido'),
+    check('lastName').notEmpty().withMessage('El apellido es requerido'),
+    check('identificacion').notEmpty().withMessage('La identificación es requerida'),
+    check('email').isEmail().withMessage('Por favor ingresa un correo electrónico válido'),
+    check('role').isIn([ESTUDIANTE, DOCENTE, ADMINISTRATIVO, VIGILANTE, VISITANTE]).withMessage('Rol inválido'),
+];
