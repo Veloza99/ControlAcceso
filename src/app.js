@@ -6,6 +6,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import {authRoutes} from "./routes/authRoutes.js";
 import {usersRoutes} from "./routes/usersRoutes.js";
+import {entryRoutes} from "./routes/entryRoutes.js";
 
 
 // Importacion de los archivos de rutas
@@ -32,6 +33,7 @@ export const io = new Server(server, {});
 
 app.use('/api/auth', authRoutes);
 app.use('/api/user', usersRoutes);
+app.use('/api/entry', entryRoutes);
 
 export {server};
 
