@@ -3,17 +3,19 @@ import { getAllUsers, getUserById, updateUser, deleteUser } from '../controllers
 import { validationResult } from 'express-validator';
 import {userValidation} from "../validator/validadores.js";
 import { authenticateToken } from '../middlewares/authMiddleware.js';
+import {ADMIN } from "../config/constantes.js";
+import { authorize } from '../middlewares/authorizeMiddleware.js';
 
 const router = Router();
 
 // Ruta para conseguir todos los usuarios
-router.get('/', authenticateToken, getAllUsers);
+router.get('/', authenticateToken, authorize([ADMIN]), getAllUsers);
 
 // Ruta para buscar los usuarios por Id
-router.get('/:id', authenticateToken, getUserById);
+router.get('/:id', authenticateToken, authorize([ADMIN]), getUserById);
 
 // Ruta para actualizar los datos del usuario por id
-router.put('/:id', authenticateToken, userValidation, async (req, res) => {
+router.put('/:id', authenticateToken, authorize([ADMIN]), userValidation, async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -22,6 +24,6 @@ router.put('/:id', authenticateToken, userValidation, async (req, res) => {
 });
 
 // Eliminar usuario por id
-router.delete('/:id', authenticateToken, deleteUser);
+router.delete('/:id', authenticateToken, authorize([ADMIN]), deleteUser);
 
 export {router as usersRoutes}
