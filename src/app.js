@@ -7,6 +7,13 @@ import morgan from "morgan";
 import {authRoutes} from "./routes/authRoutes.js";
 import {usersRoutes} from "./routes/usersRoutes.js";
 import {entryRoutes} from "./routes/entryRoutes.js";
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+// Obtener el directorio actual
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 
 
 // Importacion de los archivos de rutas
@@ -30,6 +37,8 @@ const server =http.createServer(app);
 export const io = new Server(server, {});
 
 // Usar y exponer rutas
+
+app.use('/api/static', express.static(join(__dirname, '../static')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/user', usersRoutes);
