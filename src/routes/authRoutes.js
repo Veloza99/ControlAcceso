@@ -2,12 +2,13 @@ import { Router } from 'express';
 import { validationResult } from 'express-validator';
 import { register, login } from '../controllers/authController.js';
 import {loginValidation, registerValidation} from "../validator/validadores.js";
+import {uploadImages} from "../middlewares/upload.js";
 
 
 const router = Router();
 
 // Ruta para el registro de usuarios
-router.post('/register', registerValidation, async (req, res) => {
+router.post('/register', uploadImages.array('picProfile', 1), registerValidation, async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });

@@ -1,17 +1,48 @@
 import jwt from 'jsonwebtoken';
+import {ADMINISTRATIVO, DOCENTE, ESTUDIANTE, JWT_SECRET, VIGILANTE, VISITANTE} from "../config/constantes.js";
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import fs from 'fs';
 import { User } from "../model/User.js";
-import {JWT_SECRET} from "../config/constantes.js";
+
+// Obtener el directorio actual
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Función para eliminar una imagen
+const deleteImage = (filename) => {
+    const imagePath = join(__dirname, '../../static/images', filename);
+    if (fs.existsSync(imagePath)) {
+        try {
+            fs.unlinkSync(imagePath);
+            console.log(`Imagen eliminada: ${imagePath}`);
+        } catch (error) {
+            console.error(`Error al eliminar la imagen ${imagePath}:`, error);
+        }
+    } else {
+        console.log(`La imagen no existe: ${imagePath}`);
+    }
+};
 
 // Función de registro
 export const register = async (req, res) => {
     try {
-        const { firstName, lastName, identificacion, email, password, role, picProfile } = req.body;
-
+        const { firstName, lastName, identificacion, email, password, role } = req.body;
+        const picProfile = req.files ? req.files[0].filename : '';
 
         // Verificar si el usuario ya existe
-        const existingUser = await User.findOne({ $or: [{ email }, { identificacion }] });
-        if (existingUser) {
-            return res.status(400).json({ message: 'El usuario ya existe' });
+        const userExists = await User.findOne({ $or: [{ email }, { identificacion }] });
+        if (userExists) {
+            if (req.files && req.files.length > 0 ) {
+                deleteImage(req.files[0].filename);
+            }
+            return res.status(400).json({ message: "El usuario ya existe" });
+        }
+
+        // Verificar si el rol es válido
+        if (![DOCENTE, ESTUDIANTE, ADMINISTRATIVO, VISITANTE, VIGILANTE].includes(role)) {
+            if (picProfile) deleteImage(picProfile);
+            return res.status(400).json({ message: "Rol no válido" });
         }
 
         // Crear nuevo usuario
@@ -22,10 +53,10 @@ export const register = async (req, res) => {
             email,
             password,
             role,
-            picProfile: picProfile || 'default-profile-pic.jpg' // Imagen por defecto si no se proporciona
+            picProfile: req.files && req.files.length > 0 ? req.files[0].filename : null
         });
 
-        // Guardar usuario
+        // Guardar usuario en la base de datos
         await newUser.save();
 
         // Generar token JWT
@@ -42,6 +73,9 @@ export const register = async (req, res) => {
 
         res.status(201).json({ message: 'Usuario registrado exitosamente', token });
     } catch (error) {
+        if (req.files && req.files.length > 0 ) {
+            deleteImage(req.files[0].filename);
+        }
         res.status(500).json({ message: 'Error en el registro', error: error.message });
     }
 };

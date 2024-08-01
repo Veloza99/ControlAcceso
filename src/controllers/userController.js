@@ -1,4 +1,28 @@
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import { User } from '../model/User.js';
+
+// Obtener el directorio actual
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Función para eliminar imágenes
+const deleteImages = (images) => {
+    images.forEach(image => {
+        const imagePath = join(__dirname, '../../static/images', image);
+        if (fs.existsSync(imagePath)) {
+            try {
+                fs.unlinkSync(imagePath);
+                console.log(`Imagen eliminada: ${imagePath}`);
+            } catch (error) {
+                console.error(`Error al eliminar la imagen ${imagePath}:`, error);
+            }
+        } else {
+            console.log(`La imagen no existe: ${imagePath}`);
+        }
+    });
+};
 
 // Obtener todos los usuarios
 export const getAllUsers = async (req, res) => {
@@ -30,13 +54,22 @@ export const updateUser = async (req, res) => {
         const { id } = req.params;
         const { firstName, lastName, identificacion, email, role, picProfile } = req.body;
 
+        // Manejar la actualización de la imagen de perfil
+        if (req.files && req.files.length > 0) {
+            const user = await User.findById(id);
+            if (user.picProfile) {
+                deleteImages([user.picProfile]);
+            }
+            req.body.picProfile = req.files[0].filename;
+        }
+
         const user = await User.findByIdAndUpdate(id, {
             firstName,
             lastName,
             identificacion,
             email,
             role,
-            picProfile
+            picProfile: req.body.picProfile // Asegurarse de usar la imagen actualizada
         }, { new: true });
 
         if (!user) {
@@ -57,6 +90,12 @@ export const deleteUser = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
+
+        // Eliminar la imagen de perfil del usuario
+        if (user.picProfile) {
+            deleteImages([user.picProfile]);
+        }
+
         res.status(200).json({ message: 'Usuario eliminado correctamente' });
     } catch (error) {
         res.status(500).json({ message: 'Error al eliminar el usuario', error: error.message });
