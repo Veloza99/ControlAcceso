@@ -52,25 +52,27 @@ export const getUserById = async (req, res) => {
 export const updateUser = async (req, res) => {
     try {
         const { id } = req.params;
-        const { firstName, lastName, identificacion, email, role, picProfile } = req.body;
+        const { firstName, lastName, identificacion, email, role } = req.body;
 
         // Manejar la actualización de la imagen de perfil
-        if (req.files && req.files.length > 0) {
+        let picProfile = undefined;
+        if (req.file) {
             const user = await User.findById(id);
             if (user.picProfile) {
                 deleteImages([user.picProfile]);
             }
-            req.body.picProfile = req.files[0].filename;
+            picProfile = req.file.filename;
         }
 
-        const user = await User.findByIdAndUpdate(id, {
-            firstName,
-            lastName,
-            identificacion,
-            email,
-            role,
-            picProfile: req.body.picProfile // Asegurarse de usar la imagen actualizada
-        }, { new: true });
+        const updatedFields = {};
+        if (firstName !== undefined) updatedFields.firstName = firstName;
+        if (lastName !== undefined) updatedFields.lastName = lastName;
+        if (identificacion !== undefined) updatedFields.identificacion = identificacion;
+        if (email !== undefined) updatedFields.email = email;
+        if (role !== undefined) updatedFields.role = role;
+        if (picProfile !== undefined) updatedFields.picProfile = picProfile;
+
+        const user = await User.findByIdAndUpdate(id, updatedFields, { new: true });
 
         if (!user) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
