@@ -37,9 +37,7 @@ const server =http.createServer(app);
 export const io = new Server(server, {});
 
 // Usar y exponer rutas
-
 app.use('/api/static', express.static(join(__dirname, '../static')));
-
 app.use('/api/auth', authRoutes);
 app.use('/api/user', usersRoutes);
 app.use('/api/entry', entryRoutes);

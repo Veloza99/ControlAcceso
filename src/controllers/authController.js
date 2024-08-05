@@ -28,20 +28,22 @@ const deleteImage = (filename) => {
 export const register = async (req, res) => {
     try {
         const { firstName, lastName, identificacion, email, password, role } = req.body;
-        const picProfile = req.files ? req.files[0].filename : '';
+        const picProfile = req.file ? req.file.filename : '';
 
         // Verificar si el usuario ya existe
         const userExists = await User.findOne({ $or: [{ email }, { identificacion }] });
         if (userExists) {
-            if (req.files && req.files.length > 0 ) {
-                deleteImage(req.files[0].filename);
+            if (picProfile) {
+                deleteImage(picProfile);
             }
             return res.status(400).json({ message: "El usuario ya existe" });
         }
 
         // Verificar si el rol es válido
         if (![DOCENTE, ESTUDIANTE, ADMINISTRATIVO, VISITANTE, VIGILANTE].includes(role)) {
-            if (picProfile) deleteImage(picProfile);
+            if (picProfile) {
+                deleteImage(picProfile);
+            }
             return res.status(400).json({ message: "Rol no válido" });
         }
 
@@ -53,7 +55,7 @@ export const register = async (req, res) => {
             email,
             password,
             role,
-            picProfile: req.files && req.files.length > 0 ? req.files[0].filename : null
+            picProfile: picProfile || null
         });
 
         // Guardar usuario en la base de datos
@@ -73,8 +75,8 @@ export const register = async (req, res) => {
 
         res.status(201).json({ message: 'Usuario registrado exitosamente', token });
     } catch (error) {
-        if (req.files && req.files.length > 0 ) {
-            deleteImage(req.files[0].filename);
+        if (req.file) {
+            deleteImage(req.file.filename);
         }
         res.status(500).json({ message: 'Error en el registro', error: error.message });
     }

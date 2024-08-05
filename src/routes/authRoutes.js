@@ -8,7 +8,7 @@ import {uploadImages} from "../middlewares/upload.js";
 const router = Router();
 
 // Ruta para el registro de usuarios
-router.post('/register', uploadImages.array('picProfile', 1), registerValidation, async (req, res) => {
+router.post('/register', uploadImages.single('picProfile'), registerValidation, async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
