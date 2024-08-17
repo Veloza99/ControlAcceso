@@ -10,9 +10,11 @@ const entrySchema = new mongoose.Schema({
 
 // Middleware pre-save para calcular la duración
 entrySchema.pre("save", function (next) {
-    if (this.exitTime) {
+    if (this.entryTime && this.exitTime) {
         const durationInMs = this.exitTime - this.entryTime;
-        this.duration = Math.floor(durationInMs / (1000 * 60)); // Convertir a minutos
+        this.duration = Math.floor(durationInMs / (1000 * 60));
+    } else {
+        this.duration = null;
     }
     next();
 });
