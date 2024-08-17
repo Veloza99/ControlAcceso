@@ -5,14 +5,24 @@ const entrySchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     entryTime: { type: Date, default: Date.now, required: true },
     exitTime: { type: Date },
-    duration: { type: Number } // Duración en minutos
+    duration: { type: Number }, // Duración en minutos
+    status: { 
+        type: String,
+        enum: [
+            'Pendiente de salida',
+            'Exitoso',
+            'Sin Entrada',
+            'Sin Salida'
+        ]
+    }
 }, { timestamps: true });
 
 // Middleware pre-save para calcular la duración
-entrySchema.pre("save", function (next) {
+entrySchema.pre('save', function (next) {
     if (this.entryTime && this.exitTime) {
         const durationInMs = this.exitTime - this.entryTime;
         this.duration = Math.floor(durationInMs / (1000 * 60));
+        this.status = 'Exitoso';
     } else {
         this.duration = null;
     }
