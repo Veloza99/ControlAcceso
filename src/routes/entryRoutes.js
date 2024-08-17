@@ -9,8 +9,8 @@ const router = Router();
 router.post('/', authenticateToken, createEntry);
 router.post('/exit', authenticateToken, registerExit);
 // Listar
-router.get('/', authenticateToken, getEntries);
-router.get('/:id', authenticateToken, getEntryById);
+router.get('/all/:identificacion', authenticateToken, getEntries);
+router.get('/:userId', authenticateToken, getEntryById);
 // Ruta para consultar entradas y salidas en un rango de fechas
 router.get('/entries', authenticateToken, getEntriesInRange);
 
