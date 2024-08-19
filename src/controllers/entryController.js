@@ -115,7 +115,7 @@ export const getEntries = async (req, res) => {
         }
 
         // Obtener todas las entradas del usuario ordenadas por entryTime de manera descendente (más nuevas primero)
-        const entries = await Entry.find({ userId: user._id }).sort({ entryTime: -1 });
+        const entries = await Entry.find({ userId: user._id }).sort({ updatedAt: -1 });
 
         res.status(200).json(entries);
     } catch (error) {
