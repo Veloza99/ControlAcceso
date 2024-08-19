@@ -3,16 +3,16 @@ import mongoose from "mongoose";
 // Define el esquema para las entradas y salidas
 const entrySchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    entryTime: { type: Date, default: Date.now, required: true },
-    exitTime: { type: Date },
+    entryTime: { type: Date, default: null },
+    exitTime: { type: Date, default: null },
     duration: { type: Number }, // Duración en minutos
     status: { 
         type: String,
         enum: [
             'Pendiente de salida',
             'Exitoso',
-            'Sin Entrada',
-            'Sin Salida'
+            'Sin entrada',
+            'Sin salida'
         ]
     }
 }, { timestamps: true });
