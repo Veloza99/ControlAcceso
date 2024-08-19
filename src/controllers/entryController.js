@@ -27,6 +27,8 @@ export const createEntry = async (req, res) => {
 
         // Crear la nueva entrada
         const newEntry = new Entry({ userId });
+        newEntry.status = 'Pendiente de salida';
+        newEntry.entryTime = Date.now();
         await newEntry.save();
 
         res.status(201).json({ message: 'Entrada registrada exitosamente', entry: newEntry });
@@ -106,14 +108,14 @@ export const getEntries = async (req, res) => {
     try {
         const { identificacion } = req.params; // Asume que el identificador del usuario se pasa como parámetro de la ruta
 
-        // Buscar el documento del usuario por su nombre de usuario (o cualquier otro campo único)
-        const user = await User.findOne({ identificacion }); // Cambia { username } por el campo que uses para identificar al usuario
+        // Buscar el documento del usuario por su identificador
+        const user = await User.findOne({ identificacion }); // Cambia { identificacion } por el campo que uses para identificar al usuario
         if (!user) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
 
-        // Obtener todas las entradas del usuario ordenadas por entryTime de manera ascendente
-        const entries = await Entry.find({ userId: user._id }).sort({ entryTime: 1 });
+        // Obtener todas las entradas del usuario ordenadas por entryTime de manera descendente (más nuevas primero)
+        const entries = await Entry.find({ userId: user._id }).sort({ entryTime: -1 });
 
         res.status(200).json(entries);
     } catch (error) {
