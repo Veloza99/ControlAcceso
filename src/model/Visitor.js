@@ -1,17 +1,11 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const visitorSchema = new mongoose.Schema({
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     documentType: { type: String, required: true },
     documentNumber: { type: String, required: true, unique: true },
-    birthDate: { type: Date, required: true },
-    entries: [{
-        entryTime: { type: Date, required: true },
-        exitTime: { type: Date }
-    }]
-});
+    birthDate: { type: Date, required: true }
+}, { timestamps: true });
 
-const Visitor = mongoose.model('Visitor', visitorSchema);
-
-module.exports = Visitor;
+export const Visitor = mongoose.model('Visitor', visitorSchema);

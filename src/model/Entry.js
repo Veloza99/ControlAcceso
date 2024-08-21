@@ -2,10 +2,11 @@ import mongoose from "mongoose";
 
 // Define el esquema para las entradas y salidas
 const entrySchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, 
+    visitorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Visitor' },
     entryTime: { type: Date, default: null },
     exitTime: { type: Date, default: null },
-    duration: { type: Number }, // Duración en minutos
+    duration: { type: Number },
     status: { 
         type: String,
         enum: [

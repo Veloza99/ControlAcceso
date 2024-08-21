@@ -1,5 +1,6 @@
 import { Entry } from "../model/Entry.js";
 import { User } from "../model/User.js";
+import { Visitor } from "../model/Visitor.js";
 
 // Crear una nueva entrada
 export const createEntry = async (req, res) => {
@@ -48,9 +49,6 @@ export const registerExit = async (req, res) => {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
 
-        // Obtener la fecha actual para el día
-        const today = new Date().toISOString().split('T')[0];
-
         // Buscar la última entrada del usuario
         const lastEntry = await Entry.findOne({ userId })
             .sort({ entryTime: -1 });
@@ -79,6 +77,9 @@ export const registerExit = async (req, res) => {
 
         // Verificar si la entrada es del mismo día
         const entryDate = lastEntry.entryTime.toISOString().split('T')[0];
+
+        // Obtener la fecha actual para el día
+        const today = new Date().toISOString().split('T')[0];
 
         if (entryDate === today) {
             // Actualizar la hora de salida y estado a "Exitoso"
@@ -166,5 +167,42 @@ export const getEntriesInRange = async (req, res) => {
         res.status(200).json(entries);
     } catch (error) {
         res.status(500).json({ message: 'Error al consultar las entradas y salidas', error: error.message });
+    }
+};
+
+// VISITANTES
+
+export const registerVisitorEntry = async (req, res) => {
+    try {
+        const { documentNumber } = req.body;
+
+        const visitor = await Visitor.findOne({ documentNumber });
+        if (!visitor) {
+            return res.status(404).json({ message: 'Visitante no encontrado' });
+        }
+
+        const newEntry = new Entry({ visitorId: visitor._id });
+        await newEntry.save();
+
+        res.status(201).json({ message: 'Entrada registrada exitosamente para el visitante', entry: newEntry });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al registrar la entrada', error: error.message });
+    }
+};
+
+export const getVisitorEntries = async (req, res) => {
+    try {
+        const { documentNumber } = req.params;
+
+        const visitor = await Visitor.findOne({ documentNumber });
+        if (!visitor) {
+            return res.status(404).json({ message: 'Visitante no encontrado' });
+        }
+
+        const entries = await Entry.find({ visitorId: visitor._id }).sort({ entryTime: -1 });
+
+        res.status(200).json(entries);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener el historial de entradas del visitante', error: error.message });
     }
 };
