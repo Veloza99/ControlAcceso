@@ -7,6 +7,8 @@ import morgan from "morgan";
 import {authRoutes} from "./routes/authRoutes.js";
 import {usersRoutes} from "./routes/usersRoutes.js";
 import {entryRoutes} from "./routes/entryRoutes.js";
+import {barcodeRoutes} from "./routes/barcodeRoutes.js";
+import {visitorRoutes} from "./routes/visitorRoutes.js";
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -44,7 +46,9 @@ export const io = new Server(server, {});
 app.use('/api/static', express.static(join(__dirname, '../static')));
 app.use('/api/auth', authRoutes);
 app.use('/api/user', usersRoutes);
+app.use('/api/visitor', visitorRoutes);
 app.use('/api/entry', entryRoutes);
+app.use('/api/barcodeRoutes', barcodeRoutes);
 
 export {server};
 
