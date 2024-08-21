@@ -5,7 +5,7 @@ import upload from '../middlewares/multerConfig.js';
 
 const router = express.Router();
 
-// Ruta para subir la imagen y decodificar el código de barras
+// Ruta para subir la imagen
 router.post('/upload', upload.single('image'), uploadImage);
 
 export { router as barcodeRoutes };
