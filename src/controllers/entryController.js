@@ -5,10 +5,10 @@ import { Visitor } from "../model/Visitor.js";
 // Crear una nueva entrada
 export const createEntry = async (req, res) => {
     try {
-        const { userId } = req.body;
+        const { identificacion } = req.body;
 
         // Verificar si el usuario existe
-        const user = await User.findById(userId);
+        const user = await User.findOne({ identificacion });
         if (!user) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
@@ -17,7 +17,7 @@ export const createEntry = async (req, res) => {
         const today = new Date().toISOString().split('T')[0];
 
         // Buscar la última entrada del usuario para el día actual
-        const lastEntry = await Entry.findOne({ userId })
+        const lastEntry = await Entry.findOne({ userId: user._id })
             .sort({ entryTime: -1 });
 
         // Actualizar la última entrada si no tiene hora de salida
@@ -27,7 +27,7 @@ export const createEntry = async (req, res) => {
         }
 
         // Crear la nueva entrada
-        const newEntry = new Entry({ userId });
+        const newEntry = new Entry({ userId: user._id });
         newEntry.status = 'Pendiente de salida';
         newEntry.entryTime = Date.now();
         await newEntry.save();
@@ -41,22 +41,22 @@ export const createEntry = async (req, res) => {
 // Registrar salida
 export const registerExit = async (req, res) => {
     try {
-        const { userId } = req.body;
+        const { identificacion } = req.body;
 
         // Verificar si el usuario existe
-        const user = await User.findById(userId);
+        const user = await User.findOne({ identificacion });
         if (!user) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
 
         // Buscar la última entrada del usuario
-        const lastEntry = await Entry.findOne({ userId })
+        const lastEntry = await Entry.findOne({ userId: user._id })
             .sort({ entryTime: -1 });
 
         // Si no hay entradas previas, crear una nueva entrada con estado "Sin entrada"
         if (!lastEntry) {
             const newEntry = new Entry({
-                userId,
+                userId: user._id,
                 exitTime: new Date(),
                 status: 'Sin entrada'
             });
@@ -67,7 +67,7 @@ export const registerExit = async (req, res) => {
         // Si la última entrada ya tiene una hora de salida, crear una nueva entrada con estado "Sin entrada"
         if (lastEntry.exitTime) {
             const newEntry = new Entry({
-                userId,
+                userId: user._id,
                 exitTime: new Date(),
                 status: 'Sin entrada'
             });
@@ -90,7 +90,7 @@ export const registerExit = async (req, res) => {
         } else {
             // Crear una nueva entrada con la hora de salida y estado "Sin entrada"
             const newEntry = new Entry({
-                userId,
+                userId: user._id,
                 exitTime: new Date(),
                 status: 'Sin entrada'
             });
@@ -101,8 +101,6 @@ export const registerExit = async (req, res) => {
         res.status(500).json({ message: 'Error al registrar la salida', error: error.message });
     }
 };
-
-
 
 // Obtener todas las entradas del usuario específico usando el documento
 export const getEntries = async (req, res) => {
@@ -171,7 +169,6 @@ export const getEntriesInRange = async (req, res) => {
 };
 
 // VISITANTES
-
 export const registerVisitorEntry = async (req, res) => {
     try {
         const { documentNumber } = req.body;
@@ -181,12 +178,87 @@ export const registerVisitorEntry = async (req, res) => {
             return res.status(404).json({ message: 'Visitante no encontrado' });
         }
 
+        // Buscar la última entrada del usuario para el día actual
+        const lastEntry = await Entry.findOne({ visitorId: visitor._id })
+            .sort({ entryTime: -1 });
+
+        // Actualizar la última entrada si no tiene hora de salida
+        if (lastEntry && !lastEntry.exitTime) {
+            lastEntry.status = 'Sin salida';
+            await lastEntry.save();
+        }
+
         const newEntry = new Entry({ visitorId: visitor._id });
+        newEntry.status = 'Pendiente de salida';
+        newEntry.entryTime = Date.now();
         await newEntry.save();
 
         res.status(201).json({ message: 'Entrada registrada exitosamente para el visitante', entry: newEntry });
     } catch (error) {
         res.status(500).json({ message: 'Error al registrar la entrada', error: error.message });
+    }
+};
+
+export const registerVisitorExit = async (req, res) => {
+    try {
+        const { documentNumber } = req.body;
+
+        // Verificar si el usuario existe
+        const visitor = await Visitor.findOne( {documentNumber} );
+        if (!visitor) {
+            return res.status(404).json({ message: 'Visitante no encontrado' });
+        }
+
+        // Buscar la última entrada del usuario
+        const lastEntry = await Entry.findOne({ visitorId: visitor._id })
+            .sort({ entryTime: -1 });
+
+        // Si no hay entradas previas, crear una nueva entrada con estado "Sin entrada"
+        if (!lastEntry) {
+            const newEntry = new Entry({
+                visitorId: visitor._id,
+                exitTime: new Date(),
+                status: 'Sin entrada'
+            });
+            await newEntry.save();
+            return res.status(201).json({ message: 'Entrada creada con estado "Sin entrada"', entry: newEntry });
+        }
+
+        // Si la última entrada ya tiene una hora de salida, crear una nueva entrada con estado "Sin entrada"
+        if (lastEntry.exitTime) {
+            const newEntry = new Entry({
+                visitorId: visitor._id,
+                exitTime: new Date(),
+                status: 'Sin entrada'
+            });
+            await newEntry.save();
+            return res.status(201).json({ message: 'Entrada creada con estado "Sin entrada"', entry: newEntry });
+        }
+
+        // Verificar si la entrada es del mismo día
+        const entryDate = lastEntry.entryTime.toISOString().split('T')[0];
+
+        // Obtener la fecha actual para el día
+        const today = new Date().toISOString().split('T')[0];
+
+        if (entryDate === today) {
+            // Actualizar la hora de salida y estado a "Exitoso"
+            lastEntry.exitTime = new Date();
+            lastEntry.status = 'Exitoso';
+            await lastEntry.save();
+            return res.status(200).json({ message: 'Salida registrada exitosamente', entry: lastEntry });
+        } else {
+            // Crear una nueva entrada con la hora de salida y estado "Sin entrada"
+            const newEntry = new Entry({
+                visitorId: visitor._id,
+                exitTime: new Date(),
+                status: 'Sin entrada'
+            });
+            await newEntry.save();
+            return res.status(201).json({ message: 'Entrada creada con estado "Sin entrada"', entry: newEntry });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Error al registrar la salida', error: error.message });
     }
 };
 
@@ -204,5 +276,34 @@ export const getVisitorEntries = async (req, res) => {
         res.status(200).json(entries);
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener el historial de entradas del visitante', error: error.message });
+    }
+};
+
+export const getVisitorsPendingExit = async (req, res) => {
+    try {
+        // Buscar todas las entradas que están pendientes de salida
+        const allEntries = await Entry.find({ status: 'Pendiente de salida' })
+            .populate('visitorId', 'firstName lastName documentType documentNumber'); // Asegúrate de poblar el campo visitorId con la información del visitante
+
+        if (allEntries.length === 0) {
+            return res.status(404).json({ message: 'No se encontraron entradas de visitantes en estado Pendiente de salida' });
+        }
+
+        // Filtrar y formatear los datos
+        const formattedEntries = allEntries.map(entry => ({
+            visitorId: entry.visitorId._id,
+            entryTime: entry.entryTime,
+            status: entry.status,
+            visitor: {
+                firstName: entry.visitorId.firstName,
+                lastName: entry.visitorId.lastName,
+                documentType: entry.visitorId.documentType,
+                documentNumber: entry.visitorId.documentNumber,
+            }
+        }));
+
+        res.status(200).json(formattedEntries);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener las entradas de visitantes', error: error.message });
     }
 };
