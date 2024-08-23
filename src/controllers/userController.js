@@ -37,8 +37,8 @@ export const getAllUsers = async (req, res) => {
 // Obtener un usuario por ID
 export const getUserById = async (req, res) => {
     try {
-        const { id } = req.params;
-        const user = await User.findById(id);
+        const { identificacion } = req.params;
+        const user = await User.findOne({ identificacion });
         if (!user) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
