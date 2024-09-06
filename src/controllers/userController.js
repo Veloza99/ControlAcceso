@@ -84,6 +84,37 @@ export const updateUser = async (req, res) => {
     }
 };
 
+export const updateUserProfilePic = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Verificar si se subió un archivo
+        if (!req.file) {
+            return res.status(400).json({ message: 'No se ha subido ninguna imagen' });
+        }
+
+        // Encontrar el usuario por ID
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+
+        // Si el usuario ya tiene una imagen de perfil, eliminar la anterior
+        if (user.picProfile) {
+            deleteImages([user.picProfile]);
+        }
+
+        // Actualizar la imagen de perfil
+        user.picProfile = req.file.filename;
+        await user.save();
+
+        res.status(200).json({ message: 'Imagen de perfil actualizada correctamente', user });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar la imagen de perfil', error: error.message });
+    }
+};
+
+
 // Eliminar un usuario
 export const deleteUser = async (req, res) => {
     try {
