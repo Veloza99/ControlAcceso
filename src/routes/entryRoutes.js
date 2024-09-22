@@ -1,27 +1,36 @@
 import { Router } from 'express';
-import { createEntry, registerExit, getEntries, getEntryById, getEntriesInRange, registerVisitorEntry, getVisitorEntries, registerVisitorExit, getVisitorsPendingExit } from '../controllers/entryController.js';
+import {
+    createEntry,
+    registerExit,
+    getEntries,
+    getEntryById,
+    getEntriesInRange,
+    registerVisitorEntry,
+    getVisitorEntries,
+    registerVisitorExit,
+    getVisitorsPendingExit, getAllEntries,
+} from '../controllers/entryController.js';
 import { authenticateToken } from '../middlewares/authMiddleware.js';
 //import { authorize } from '../middlewares/authorizeMiddleware.js';
 
 const router = Router();
 
-// Entradas y salidas
+// Entradas y salidas de usuarios (rutas sin parámetros)
 router.post('/user-entry', authenticateToken, createEntry);
 router.post('/user-exit', authenticateToken, registerExit);
-// Listar
+router.get('/entries', authenticateToken, getEntriesInRange);
+router.get('/all-entries', authenticateToken, getAllEntries);
+
+// Visitantes (rutas sin parámetros)
+router.post('/visitor-entry', registerVisitorEntry);
+router.post('/visitor-exit', registerVisitorExit);
+router.get('/visitor-all-entries', getVisitorsPendingExit);
+
+// Entradas y salidas de usuarios (rutas con parámetros)
 router.get('/user-all/:identificacion', authenticateToken, getEntries);
 router.get('/user-list/:userId', authenticateToken, getEntryById);
-// Ruta para consultar entradas y salidas en un rango de fechas
-router.get('/entries', authenticateToken, getEntriesInRange);
 
-//Visitantes
-// Ruta para registrar la entrada de un visitante
-router.post('/visitor-entry', registerVisitorEntry);
-// Ruta para la salida del visitante
-router.post('/visitor-exit', registerVisitorExit);
-// Ruta para obtener el historial de entradas de un visitante por su número de documento
+// Visitantes (rutas con parámetros)
 router.get('/visitor-entries/:documentNumber', getVisitorEntries);
-// Ruta para obtener el historial de entradas los visitantes actuales
-router.get('/visitor-all-entries', getVisitorsPendingExit);
 
 export { router as entryRoutes };

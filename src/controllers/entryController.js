@@ -2,6 +2,12 @@ import { Entry } from "../model/Entry.js";
 import { User } from "../model/User.js";
 import { Visitor } from "../model/Visitor.js";
 
+import { parseISO, startOfDay, endOfDay } from 'date-fns';
+import { fromZonedTime } from 'date-fns-tz';
+
+
+
+
 // Crear una nueva entrada
 export const createEntry = async (req, res) => {
     try {
@@ -168,6 +174,50 @@ export const getEntriesInRange = async (req, res) => {
     }
 };
 
+
+// Consultar entradas y salidas en un intervalo de tiempo
+export const getAllEntries = async (req, res) => {
+    try {
+        const { fecha } = req.query;
+
+        if (!fecha) {
+            return res.status(400).json({ message: 'Se requiere una fecha.' });
+        }
+
+        // Definir la zona horaria del usuario (ajusta según tu ubicación)
+        const userTimeZone = 'America/Bogota'; // Cambia esto a tu zona horaria
+
+        // Parsear la fecha proporcionada (asumiendo formato 'YYYY-MM-DD')
+        const date = parseISO(fecha);
+        if (isNaN(date)) {
+            return res.status(400).json({ message: 'Fecha inválida.' });
+        }
+
+        // Obtener el inicio y fin del día en la zona horaria del usuario
+        const startOfDayInTimeZone = startOfDay(date);
+        const endOfDayInTimeZone = endOfDay(date);
+
+        // Convertir las fechas de inicio y fin del día a UTC
+        const startDateUTC = fromZonedTime(startOfDayInTimeZone, userTimeZone);
+        const endDateUTC = fromZonedTime(endOfDayInTimeZone, userTimeZone);
+
+        // Consulta a la base de datos utilizando las fechas en UTC
+        const entries = await Entry.find({
+            entryTime: {
+                $gte: startDateUTC,
+                $lte: endDateUTC,
+            },
+        })
+            .populate('userId')
+            .populate('visitorId');
+
+        res.status(200).json(entries);
+    } catch (error) {
+        console.error('Error al obtener las entradas:', error);
+        res.status(500).json({ message: 'Error al obtener las entradas.' });
+    }
+};
+
 // VISITANTES
 export const registerVisitorEntry = async (req, res) => {
     try {
@@ -289,21 +339,30 @@ export const getVisitorsPendingExit = async (req, res) => {
             return res.status(404).json({ message: 'No se encontraron entradas de visitantes en estado Pendiente de salida' });
         }
 
+        //console.log('allEntries', allEntries)
         // Filtrar y formatear los datos
-        const formattedEntries = allEntries.map(entry => ({
-            visitorId: entry.visitorId._id,
-            entryTime: entry.entryTime,
-            status: entry.status,
-            visitor: {
-                firstName: entry.visitorId.firstName,
-                lastName: entry.visitorId.lastName,
-                documentType: entry.visitorId.documentType,
-                documentNumber: entry.visitorId.documentNumber,
+        const formattedEntries = allEntries.map(entry => {
+            const {visitorId} = entry;
+            if(visitorId !== undefined) {
+                return {
+                    visitorId: entry.visitorId._id.toString(),
+                    entryTime: entry.entryTime,
+                    status: entry.status,
+                    visitor: {
+                        firstName: entry.visitorId.firstName,
+                        lastName: entry.visitorId.lastName,
+                        documentType: entry.visitorId.documentType,
+                        documentNumber: entry.visitorId.documentNumber,
+                    }
+                }
             }
-        }));
+        });
 
-        res.status(200).json(formattedEntries);
+        const filteredEntries = formattedEntries.filter(entry => entry !== undefined);
+
+        res.status(200).json(filteredEntries);
     } catch (error) {
+        console.log(error)
         res.status(500).json({ message: 'Error al obtener las entradas de visitantes', error: error.message });
     }
 };

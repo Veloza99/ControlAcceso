@@ -5,6 +5,7 @@ const visitorSchema = new mongoose.Schema({
     lastName: { type: String, required: true },
     documentType: { type: String, required: true },
     documentNumber: { type: String, required: true, unique: true },
+    motivoVisita: { type: String, required: true },
     birthDate: { type: Date, required: true }
 }, { timestamps: true });
 
