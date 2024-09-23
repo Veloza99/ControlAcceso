@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 const entrySchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, 
     visitorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Visitor' },
+    motivoVisita: { type: String, default: null },
     entryTime: { type: Date, default: null },
     exitTime: { type: Date, default: null },
     duration: { type: Number },

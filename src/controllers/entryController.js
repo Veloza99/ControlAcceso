@@ -221,7 +221,7 @@ export const getAllEntries = async (req, res) => {
 // VISITANTES
 export const registerVisitorEntry = async (req, res) => {
     try {
-        const { documentNumber } = req.body;
+        const { documentNumber, motivoVisita } = req.body;
 
         const visitor = await Visitor.findOne({ documentNumber });
         if (!visitor) {
@@ -239,6 +239,13 @@ export const registerVisitorEntry = async (req, res) => {
         }
 
         const newEntry = new Entry({ visitorId: visitor._id });
+
+        console.log("entrada " + newEntry);
+
+        newEntry.motivoVisita = motivoVisita;
+
+        console.log("entrada 2" + newEntry);
+
         newEntry.status = 'Pendiente de salida';
         newEntry.entryTime = Date.now();
         await newEntry.save();
@@ -343,10 +350,13 @@ export const getVisitorsPendingExit = async (req, res) => {
         // Filtrar y formatear los datos
         const formattedEntries = allEntries.map(entry => {
             const {visitorId} = entry;
-            if(visitorId !== undefined) {
+            const today = new Date().toISOString().split('T')[0];
+            const todayEntry = entry.entryTime.toISOString().split('T')[0];
+            if(visitorId !== undefined && (today==todayEntry)) {
                 return {
                     visitorId: entry.visitorId._id.toString(),
                     entryTime: entry.entryTime,
+                    motivoVisita: entry.motivoVisita,
                     status: entry.status,
                     visitor: {
                         firstName: entry.visitorId.firstName,

@@ -5,10 +5,7 @@ import { Entry } from "../model/Entry.js";
 export const createVisitor = async (req, res) => {
     try {
         const { firstName, lastName, documentType, documentNumber, birthDate, motivoVisita } = req.body;
-
-        console.log({motivoVisita})
-
-        const newVisitor = new Visitor({ firstName, lastName, documentType, documentNumber, birthDate, motivoVisita });
+        const newVisitor = new Visitor({ firstName, lastName, documentType, documentNumber, birthDate});
         await newVisitor.save();
 
         const visitor = await Visitor.findOne({ documentNumber });
@@ -17,6 +14,7 @@ export const createVisitor = async (req, res) => {
         }
 
         const newEntry = new Entry({ visitorId: visitor._id });
+        newEntry.motivoVisita = motivoVisita;
         newEntry.status = 'Pendiente de salida';
         newEntry.entryTime = Date.now();
         await newEntry.save();
