@@ -342,8 +342,12 @@ export const getVisitorsPendingExit = async (req, res) => {
         const allEntries = await Entry.find({ status: 'Pendiente de salida' })
             .populate('visitorId', 'firstName lastName documentType documentNumber'); // Asegúrate de poblar el campo visitorId con la información del visitante
 
+        //if (allEntries.length === 0) {
+        //    return res.status(404).json({ message: 'No se encontraron entradas de visitantes en estado Pendiente de salida' });
+        //}
+
         if (allEntries.length === 0) {
-            return res.status(404).json({ message: 'No se encontraron entradas de visitantes en estado Pendiente de salida' });
+            return res.status(204).json([]);
         }
 
         //console.log('allEntries', allEntries)
