@@ -347,7 +347,7 @@ export const getVisitorsPendingExit = async (req, res) => {
         //}
 
         if (allEntries.length === 0) {
-            return allEntries;
+            return res.status(200).json([]);
         }
 
         //console.log('allEntries', allEntries)
