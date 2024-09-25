@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { getAllUsers, getUserById, updateUser, updateUserProfilePic, deleteUser } from '../controllers/userController.js';
 import { validationResult } from 'express-validator';
 import { authenticateToken } from '../middlewares/authMiddleware.js';
-import {ADMIN } from "../config/constantes.js";
+import {ADMIN, VIGILANTE} from "../config/constantes.js";
 import { authorize } from '../middlewares/authorizeMiddleware.js';
 import {uploadImages} from "../middlewares/upload.js";
 import {userValidation} from "../validator/validadores.js";
