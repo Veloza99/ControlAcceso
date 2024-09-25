@@ -14,7 +14,7 @@ const router = Router();
 router.get('/', authenticateToken, authorize([ADMIN]), getAllUsers);
 
 // Ruta para buscar los usuarios por Id
-router.get('/:identificacion', authenticateToken, authorize([ADMIN]), getUserById);
+router.get('/:identificacion', authenticateToken, authorize([ADMIN, VIGILANTE]), getUserById);
 
 // Ruta para actualizar los datos del usuario por id
 router.put('/:id', authenticateToken, authorize([ADMIN]), uploadImages.single('picProfile'), userValidation, async (req, res) => {
